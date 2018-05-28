@@ -1,249 +1,14 @@
-#This is the main program
-#Dabeer Mirza 13O1
-#13-01-2015
-
 #Initialise pygame
 import pygame, math, sys, random, copy
 from pygame.locals import *
+
+#Importing classes needed
+from Classes.Button import Button
+from Classes.CheckBox import CheckBox
+from Classes.RandomButton import RandomButton
+from Classes.InputBox import InputBox
+
 pygame.init()
-
-#Classes needed
-class Button:
-    def __init__(self, Label, PosXStart, PosYStart, Width, Length, Surface):
-        self.Label = Label
-        self.PosXStart = PosXStart
-        self.PosYStart = PosYStart
-        self.Width = Width
-        self.Length = Length
-        self.BackgroundColour = (51,153,255) #Sexy blue colour for all buttons
-        self.Surface = Surface
-        self.Font = pygame.font.Font(None, 32)
-        self.TextColour = (0,0,0) #Black 
-
-    def DisplayButton(self): #Method used to draw the button
-        Button = pygame.draw.rect(self.Surface, self.BackgroundColour, (self.PosXStart, self.PosYStart, self.Length, self.Width))
-        self._MakeLabel()
-        
-    def _MakeLabel(self):
-        LabelX = (self.PosXStart + 10)
-        LabelY = (self.PosYStart + (self.Length//20))
-        ButtonText = self.Font.render(self.Label,1,self.TextColour)
-        self.Surface.blit(ButtonText, (LabelX,LabelY))
-        
-    def ClickInRange(self, PositionTuple):
-        if (PositionTuple[0] in range(self.PosXStart, self.PosXStart+self.Length+1)) and (PositionTuple[1] in range(self.PosYStart, self.PosYStart+self.Width+1)):
-            return True
-        else:
-            return False
-
-class CheckBox:
-    def __init__(self, PosX, PosY, Width,Surface,Label,WordDistance):
-        self.Surface = Surface #What surface the box will be drawn on
-        self.StartX = PosX 
-        self.StartY = PosY
-        self.Width = Width #Determines the dimensions of the box (will always be a*a dimensions)
-        self.Thickness = 8 #Determines thickness of tick
-        self.GREEN = (0,255,0) #The colour of the tick
-        self.BLACK = (0,0,0) #Box outline colour
-        self.Clicked = False
-        self.Label = Label
-        self.Font= pygame.font.Font(None,25) #Using Pygame's default font
-        self.TextColour = self.BLACK #Text colour will be black
-        self.WordDistance = WordDistance #Allows the user to customise how far away the checkbox is away from the user
-
-    def MakeBox(self): #Makes box by drawing lines on the surface
-        TopLine = pygame.draw.line(self.Surface, self.BLACK,(self.StartX-2,self.StartY),
-                                   (self.StartX+self.Width+2,self.StartY),1)
-        LeftLine = pygame.draw.line(self.Surface,self.BLACK,(self.StartX-2,self.StartY),
-                                    (self.StartX-2,self.StartY+self.Width+2),1)
-        BottomLine = pygame.draw.line(self.Surface,self.BLACK,(self.StartX-2,self.StartY+self.Width+2),
-                                    (self.StartX+self.Width+2,self.StartY+self.Width+2),1)
-        RightLine = pygame.draw.line(self.Surface,self.BLACK,(self.StartX+self.Width+2,self.StartY),
-                                    (self.StartX+self.Width+2,self.StartY+self.Width+2),1)
-        self._AddLabel() #Adds a label to the checkbox
-        if self.Clicked == True:
-            self._AddTick() #Adds tick
-
-    def ClickInRange(self, PositionTuple): #Checks if a mouse click is in range of the checkbox
-        if (PositionTuple[0] in range(self.StartX, self.StartX+self.Width+1)) and (PositionTuple[1] in range(self.StartY, self.StartY+self.Width+1)):
-            #This allows you to check and uncheck the box
-            if self.Clicked == True:
-                self.Clicked = False
-            else:
-                self.Clicked = True
-
-    def _TickCoordinates(self): #A private method that allows me to get the coordinates of 2 lines which will form to make one tick
-        X1 = self.StartX
-        Y1 = self.StartY + (self.Width//2)
-        X2 = self.StartX + (self.Width//2)
-        Y2 = self.StartY + self.Width
-        X3 = self.StartX + self.Width
-        Y3 = self.StartY
-        return X1,Y1,X2,Y2, X3,Y3
-    
-    def _AddTick(self):
-           #Initialise coordinates
-           FirstX,FirstY,SecondX,SecondY,ThirdX,ThirdY = self._TickCoordinates() #Private methods used to get coordinates of tick
-           #Actually Draws Lines => making the tick
-           pygame.draw.line(self.Surface, self.GREEN, (FirstX,FirstY),(SecondX,SecondY),self.Thickness)
-           pygame.draw.line(self.Surface, self.GREEN, (SecondX, SecondY),(ThirdX,ThirdY),self.Thickness)
-
-    def _AddLabel(self): #Private method used to add a label to a checkbox
-        LabelX = self.StartX - self.WordDistance
-        LabelY = self.StartY + 8
-        Text = self.Font.render(self.Label,1,self.TextColour)
-        self.Surface.blit(Text, (LabelX,LabelY))
-
-class InputBox: #Class used to make input box
-    def __init__(self,PosX, PosY, Label,WordDistance,LengthValidation,RangeTuple):
-        self.StartX = PosX
-        self.StartY = PosY
-        self.Variable = "" #String which can vary
-        self.Width = 30
-        self.Length = 200
-        self.Label = Label #Label given to box. E.g. Displacement(m): []
-        self.Surface = DISPLAYSURF
-        self.Font = pygame.font.Font(None,25)
-        self.BLACK = (0,0,0)
-        self.TextColour = self.BLACK #Input text colour
-        self.WordDistance = WordDistance #How far away you want the label to be from the box
-        self.Clicked = False #Checks if the input box has been clicked or not
-        self.StringLength = LengthValidation #Ensures that the length of the string doesn't exceed a certain length. E.g No more than 5 characters
-        self.Range = RangeTuple #Range of results allowed. E.g. 0 - 100.0 inclusive
-
-    def MakeBox(self):
-        #Makes the input box
-        TopLine = pygame.draw.line(self.Surface, self.BLACK,(self.StartX-2,self.StartY),
-                                   (self.StartX+self.Length+2,self.StartY),1)
-        LeftLine = pygame.draw.line(self.Surface,self.BLACK,(self.StartX-2,self.StartY),
-                                    (self.StartX-2,self.StartY+self.Width+2),1)
-        BottomLine = pygame.draw.line(self.Surface,self.BLACK,(self.StartX-2,self.StartY+self.Width+2),
-                                    (self.StartX+self.Length+2,self.StartY+self.Width+2),1)
-        RightLine = pygame.draw.line(self.Surface,self.BLACK,(self.StartX+self.Length+2,self.StartY),
-                                    (self.StartX+self.Length+2,self.StartY+self.Width+2),1)
-
-        self._AddLabel() #Adds a label to the checkbox
-        self._DisplayVariable() #Shows Variable on screen
-        self._DisplayRange() #Displays the minimum & maximum value that can be entered
-
-    def _AddLabel(self): #Private method used to add a label to a checkbox
-        LabelX = self.StartX - self.WordDistance - 5
-        LabelY = self.StartY + 3
-        Text = self.Font.render(self.Label,1,self.TextColour)
-        #Display the label
-        self._AddText(Text, (LabelX,LabelY))
-
-    def _DisplayVariable(self): #Private method which is meant to display the variable
-        XStart = self.StartX + 5
-        YStart = self.StartY + 3
-        Text = self.Font.render(self.Variable,1,self.TextColour)
-        #Display the variable
-        self._AddText(Text, (XStart,YStart))
-
-    def _DisplayRange(self): #Private method which enables the user to see the range of values permitted
-        XStart = self.StartX + self.Length + 15
-        YStart = self.StartY - 5
-        MinText = self.Font.render('Min: ' + str(float(self.Range[0])),1,self.TextColour)
-        MaxText = self.Font.render("Max: " + str(float(self.Range[1])),1,self.TextColour)
-        #Display Range
-        self._AddText(MinText, (XStart,YStart))
-        self._AddText(MaxText, (XStart, YStart+20))
-
-    def _AddText(self, Text, CoordinatesTuple): #Private method used to display text
-        self.Surface.blit(Text, (CoordinatesTuple[0], CoordinatesTuple[1]))
-
-    def ClickInRange(self, PositionTuple): #Checks if a mouse click is in range of the checkbox
-        if (PositionTuple[0] in range(self.StartX, self.StartX+self.Length+1)) and (PositionTuple[1] in range(self.StartY, self.StartY+self.Width+1)):
-            self.Clicked = True
-        else:
-            self.Clicked = False #This means that if the click is out of the box you can no longer enter variables in the box
-                
-    def AddCharacter(self, Input): #Adds character from alphabet -> ['1','2','3','4,'5','6','7','8','9','.',BACKSPACE]
-        if (Input == K_1) and (len(self.Variable)<self.StringLength):
-            if self._NumInRange(1)==True:
-                if "." in self.Variable:
-                    self.Variable = self._AdjustVariable(1)
-                else:
-                    self.Variable += "1"
-        elif (Input == K_2) and (len(self.Variable)<self.StringLength):
-            if self._NumInRange(2)==True:
-                if "." in self.Variable:
-                    self.Variable = self._AdjustVariable(2)
-                else:
-                    self.Variable += "2"
-        elif (Input == K_3) and (len(self.Variable)<self.StringLength):
-            if self._NumInRange(3)==True:
-                if "." in self.Variable:
-                    self.Variable = self._AdjustVariable(3)
-                else:
-                    self.Variable += "3"
-        elif (Input == K_4) and (len(self.Variable)<self.StringLength):
-            if self._NumInRange(4)==True:
-                if "." in self.Variable:
-                    self.Variable = self._AdjustVariable(4)
-                else:
-                    self.Variable += "4"
-        elif (Input == K_5) and (len(self.Variable)<self.StringLength):
-            if self._NumInRange(5)==True:
-                if "." in self.Variable:
-                    self.Variable = self._AdjustVariable(5)
-                else:
-                    self.Variable += "5"
-        elif (Input == K_6) and (len(self.Variable)<self.StringLength):
-            if self._NumInRange(6)==True:
-                if "." in self.Variable:
-                    self.Variable = self._AdjustVariable(6)
-                else:
-                    self.Variable += "6"
-        elif (Input == K_7) and (len(self.Variable)<self.StringLength):
-            if self._NumInRange(7)==True:
-                if "." in self.Variable:
-                    self.Variable = self._AdjustVariable(7)
-                else:
-                    self.Variable += "7"
-        elif (Input == K_8) and (len(self.Variable)<self.StringLength):
-            if self._NumInRange(8)==True:
-                if "." in self.Variable:
-                    self.Variable = self._AdjustVariable(8)
-                else:
-                    self.Variable += "8"
-        elif (Input == K_9) and (len(self.Variable)<self.StringLength):
-            if self._NumInRange(9)==True:
-                if "." in self.Variable:
-                    self.Variable = self._AdjustVariable(9)
-                else:
-                    self.Variable += "9"
-        elif (Input == K_0) and (len(self.Variable)<self.StringLength):
-            if self._NumInRange(0)==True:
-                if "." in self.Variable:
-                    self.Variable = self._AdjustVariable(0)
-                else:
-                    self.Variable += "0"
-        elif (Input == K_PERIOD) and (len(self.Variable)<self.StringLength):
-            if "." not in self.Variable: #You should only be able to enter a decimal ('.') if the variable doesn't already have one
-                self.Variable += "."
-        
-        elif (Input == K_BACKSPACE): #Deletes the final character in 'Variable'
-            self.Variable = self.Variable[:-1]
-            
-    def _AdjustVariable(self,String): #Private method that adjusts the input so that it is always to 1dp
-        self.Variable += str(String)
-        self.Variable = "%0.2f" % float(self.Variable)
-        return self.Variable[:-1] 
-
-    def _NumInRange(self, Num): #Checks if the number will be in range and returns if this is the case or not
-        if (float(self.Variable + str(Num))>=self.Range[0]) and (float(self.Variable + str(Num))<=self.Range[1]):
-            return True
-        else:
-            return False
-
-class RandomButton(Button): #Use of inheritence #Makes  a random button in pygame
-    def __init__(self,Label, PosXStart, PosYStart, Width, Length, Surface, Range):
-        super().__init__(Label, PosXStart, PosYStart, Width, Length, Surface) #Inhereits all fields and methods from button class
-        self._Range = Range #Range must be given as a tuple
-
-    def GetNumInRange(self): #Gets a random real number in a given range to 1dp
-        return str(round(random.uniform(self._Range[0], self._Range[1]),1))
 
 #Global parameters
 BALL = pygame.image.load("ball.jpg")
@@ -353,7 +118,7 @@ def ProjMotionSimulation(s,u,v,t,Angle,Hide,Mode):
     s = s
     PosX = 50
     PosY = GROUNDLEVEL #As the particle will start at the ground
-    g = -9.8 
+    g = -9.8
     ANGLEDEGREES = round(Angle,1)
     ANGLERADIANS = math.radians(ANGLEDEGREES)
     u = u
@@ -387,7 +152,7 @@ def ProjMotionSimulation(s,u,v,t,Angle,Hide,Mode):
             PosY = GROUNDLEVEL
             PosX = CoordinatesList[Pointer][0]
             DISPLAYSURF.blit(BALL, (PosX, PosY))
-        #Makes trail   
+        #Makes trail
         if Pointer>1:
             pygame.draw.aalines(DISPLAYSURF, RED,False, TrailList[:Pointer],5)#MakeTrail(Pointer)
         #Makes ground by drawing a thick, green line
@@ -487,14 +252,14 @@ def RampSimulation(s,u,v,t,Angle,Hide):
     RAMPSTART = 500
     GROUNDLEVEL = 350
     ANGLERADIANS = math.radians(ANGLEDEGREES) #Have to use this: PyGame works in radians not degrees
-    SimulationTime = 1/FPS #Initialises time 
+    SimulationTime = 1/FPS #Initialises time
     y = GROUNDLEVEL - SCALEFACTOR * round(s * math.sin(ANGLERADIANS),1) - 25 #Initialise the the y coordinate
     #Decides which page to navigate to next
     Input = False
     ProjectileMotion = False
     Explain = False
     Running = True #Allows the program to run
-    
+
     while Running:
         #Display the widgets
         DISPLAYSURF.fill(WHITE)
@@ -509,14 +274,14 @@ def RampSimulation(s,u,v,t,Angle,Hide):
         x, y = GetPos(s,u,g,SimulationTime, ANGLERADIANS,SCALEFACTOR,GROUNDLEVEL,RAMPSTART)
 
         if (y < GROUNDLEVEL) and (SimulationTime<=TotalTime): #Just in case...
-            DISPLAYSURF.blit(BALL, (x,y)) 
-            SimulationTime += 1/FPS #So that the time is updated 
+            DISPLAYSURF.blit(BALL, (x,y))
+            SimulationTime += 1/FPS #So that the time is updated
         else:
             DISPLAYSURF.blit(BALL, (RAMPSTART,GROUNDLEVEL-30)) #Just so that it doesn't disappear after being changing
         #Add these at end so that the ball is underneath the ramp & ground
         MakeRamp(GROUNDLEVEL,RAMPSTART,ANGLERADIANS,SCALEFACTOR)
         MakeGround(GROUNDLEVEL)
-        
+
         for event in pygame.event.get():
                 if event.type == QUIT:
                     pygame.quit()
@@ -532,17 +297,17 @@ def RampSimulation(s,u,v,t,Angle,Hide):
                         Running = False
                     elif ExplainButton.ClickInRange((PosX,PosY)) == True:
                         Explain = True
-                        Running = False            
+                        Running = False
         pygame.display.update()
         fpsClock.tick(FPS)
-    #Where the next page will be  
+    #Where the next page will be
     if Input == True:
         InputScreen_Ramp()
     elif ProjectileMotion == True:
         InputScreen_ProjMotion()
     elif Explain == True:
         Explain_Ramp(s,u,v,t,ANGLERADIANS,HIDE.Clicked)
-    
+
 
 #Functions Needed
 def Explain_ProjMotion1(s,u,v,t,Angle,Hide,Method):
@@ -608,17 +373,17 @@ def DisplayExplainProjMotion(a,b,c,d,e,f,g,h,Button): #Made to display the proce
      DISPLAYSURF.blit(g,(40,320))
      DISPLAYSURF.blit(h,(40,370))
      Button.DisplayButton()
-     
+
 def Explain_Ramp(s,u,v,t,Angle,Hide): #Function which takes user to new page which shows how the variables were solved for the ramp
     ExplainFont = pygame.font.Font(None, 32) #Initialises Pygame's default font this time a size smaller to fit onto screen
     Running = True
     VExplain1 = ExplainFont.render("Re-arrange the SUVAT formula (v^2 = u^2 + 2as) into the form:", 1, BLACK)
-    VExplain2 = ExplainFont.render("=> v = √u^2 + 2sgsinθ",1,BLACK) 
+    VExplain2 = ExplainFont.render("=> v = √u^2 + 2sgsinθ",1,BLACK)
     VExplain3 = ExplainFont.render("=> v = √{0}^2 + 2*{1}*g*sin({2})".format("%.1f"%u,"%.1f"%s,"%.1f"%(math.degrees(Angle))),1,BLACK)
     TExplain1 = ExplainFont.render("Re-arrange (s = ut + 0.5at^2) into quadratic form:",1,BLACK)
     TExplain2 = ExplainFont.render("=> t = (-u + √u^2 + 19.6s*sinθ) /gsin(θ)",1,BLACK)
     TExplain3 = ExplainFont.render("=> t = (-{0} + √{0}^2 + 19.6*{1}*sin({2}))/gsin({2})".format(("%.1f"%u),("%.1f"%s),("%.1f"%(math.degrees(Angle)))),1,BLACK)
-    OKButton = Button("OK",400,500,35,100,DISPLAYSURF) 
+    OKButton = Button("OK",400,500,35,100,DISPLAYSURF)
     while Running:
         DISPLAYSURF.fill(WHITE)
         DISPLAYSURF.blit(VExplain1,(40,70))
@@ -639,8 +404,8 @@ def Explain_Ramp(s,u,v,t,Angle,Hide): #Function which takes user to new page whi
         pygame.display.update()
         fpsClock.tick(FPS)
     RampSimulation(s,u,v,t,Angle,Hide)
-    
-    
+
+
 def MakeRamp(GROUNDLEVEL, RAMPSTART, Angle,SCALEFACTOR):
     EndRampX = RAMPSTART - (SCALEFACTOR * 100 * math.cos(Angle))
     EndRampY = GROUNDLEVEL - (SCALEFACTOR * 100 * math.sin(Angle))
@@ -652,7 +417,7 @@ def MakeGround(GROUNDLEVEL):
 def GetPos(s,u,g,Time,Angle,SCALEFACTOR,GROUNDLEVEL,RAMPSTART):
     s_difference = (u * Time) + (0.5 * abs(g) * math.sin(Angle) * (Time**2)) #Using formula s=ut+0.5at**2 to get displacement at time t
     s_new  = s - s_difference
-    x_new = SCALEFACTOR * s_new * math.cos(Angle) #New x coordinate 
+    x_new = SCALEFACTOR * s_new * math.cos(Angle) #New x coordinate
     y_new = SCALEFACTOR * s_new * math.sin(Angle) #New y coordinate
     if (GROUNDLEVEL - y_new) - 25 <= GROUNDLEVEL:
         x = (RAMPSTART - x_new) - 5#Adjusted or Pygame #The '-5' makes it prettier
@@ -708,13 +473,13 @@ def VerticalCoordinates(j, g, PosY, UP, DOWN): #Generates vertical coordinates f
         return [PosY] + VerticalCoordinates(j, g, PosY, True, False)
 
     elif DOWN == True:
-        PosY = PosY - (SCALEFACTOR*(j/FPS)) 
+        PosY = PosY - (SCALEFACTOR*(j/FPS))
         j = j + (g/FPS) #Have to add 'g' as it's negative
         if PosY >= GROUNDLEVEL:
             PosY = GROUNDLEVEL
             return [PosY]
         return [PosY] + VerticalCoordinates(j, g, PosY,False, True)
-    
+
 def RoundAllValues(List):
     for count in range(len(List)):
         List[count][0] = round(List[count][0],1)
@@ -735,7 +500,7 @@ def Convert(List):
     return List[-1]
 
 def JoinLists(ListX, ListY):
-    ListXY = [] #Returns coordinates of projectile 
+    ListXY = [] #Returns coordinates of projectile
     for count in range(len(ListX)):
         ListXY.append([ListX[count], ListY[count]])
     ListXY = RoundAllValues(ListXY)
@@ -799,13 +564,13 @@ def ErrorMsg_NotEnough_Proj():
             if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN: 
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 (PosX,PosY)  = pygame.mouse.get_pos()
                 if OKButton.ClickInRange((PosX,PosY)) == True: #Know you get to go to the input screen
                     Running = False
         pygame.display.update()
         fpsClock.tick(FPS)
-    InputScreen_ProjMotion() #Goes back to the input screen 
+    InputScreen_ProjMotion() #Goes back to the input screen
 
 def ErrorMsg_Ramp(): #Makes error message for Ramp Mode which tells the user to enter Dispacement & Initial Velocity & Angle
     Line1 = Font.render("ERROR!", 1, RED)
@@ -834,7 +599,7 @@ def ErrorMsg_Ramp(): #Makes error message for Ramp Mode which tells the user to 
         pygame.display.update()
         fpsClock.tick(FPS)
     InputScreen_Ramp()
-    
+
 def Solve_ProjMotion(s,u,Angle): #Solves remaining parameters using SUVAT equations
     #Actually solve other parameters
     g = 9.8 #Numerical value of acceleration due to gravity
@@ -855,13 +620,13 @@ def Solve_ProjMotion(s,u,Angle): #Solves remaining parameters using SUVAT equati
         return s, u, v, t, math.degrees(Angle), Mode
     elif (s!="") and (Angle!="") and (u!=""): #i.e. When all parameters are given
         ErrorMsg_NotEnough_Proj() #Entering all 3 can lead to impossible situations
-        
+
 def NotPossible(): #Displays an error message which tells the user that the inputs entered are not feasible
     Title1 = Font.render("The inputs are not valid.", 1, RED) #Error message
     Title2 = Font.render("The value for Displacement is too high", 1, RED) #Error message
     Title3 = Font.render("for the given velocity.", 1, RED)
     Title4 = Font.render("Such a situation shouldn't occur.", 1, RED) #Error message
-    Title5 = Font.render("Please Try Again.", 1, RED) 
+    Title5 = Font.render("Please Try Again.", 1, RED)
     OKButton =  Button("OK", 350, 500, 40, 100,DISPLAYSURF)
     Running =True
     while Running:
@@ -884,8 +649,8 @@ def NotPossible(): #Displays an error message which tells the user that the inpu
         pygame.display.update()
         fpsClock.tick(FPS)
     InputScreen_ProjMotion()
-        
-        
+
+
 def Convert(s,u,Angle): #Function that attempts to convert the varaibles-s,u,Angle to floats
                                      #If it's anything but a number, like '.' or ' ', it will treat the input as " "
     try:
