@@ -14,10 +14,10 @@ pygame.init()
 BALL = pygame.image.load("ball.jpg")
 Font = pygame.font.Font(None, 64) #Initialises Pygame's default font
 SCREENWIDTH, SCREENHEIGHT = 900, 600 #Sets the screen's height & width
-WHITE  = (255, 255, 255)
-GREEN = (124,  255,     0)
-RED     = (255,     0,      0)
-BLACK = (    0,     0,      0)
+WHITE = (255, 255, 255)
+GREEN = (124, 255,   0)
+RED   = (255,   0,   0)
+BLACK = (  0,   0,   0)
 FPS = 30 #Frames per second
 fpsClock = pygame.time.Clock()
 DISPLAYSURF = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT), 0, 32) #Main screen that I will add stuff on
