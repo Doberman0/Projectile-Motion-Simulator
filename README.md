@@ -4,7 +4,7 @@ A simple projectile motion simulator made in Python/PyGame made with a custom UI
 
 The simulator also solves the corresponding SUVAT parameters when you enter them. (E.g. You enter initial velocity and the angle of projection, the program will solve for you: vertical displacement,final velocity,time taken for the ball to fall back to the ground and the acceleration towards earth (which is always -9.8ms^-2 as we're using newtonian mechanics)).
 
-Here is an image of the input screen:
+Here is an image of the input screen: <br>
 ![ProjectileMotion3](https://user-images.githubusercontent.com/21209853/82128949-1aa43580-97b7-11ea-9331-71290b4ab729.JPG)
 
 An image of a ball being projected:
